@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PROTOCOL ZERO : TACTICAL SURVIVAL</title>
+<style>
+• { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+html, body {
+width: 100%; height: 100%; overflow: hidden;
+background-color: #06080b; color: #e2e8f0;
+font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif;
+touch-action: none;
+}
+#gameCanvas {
+position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+z-index: 1; display: block; background: #06080b; cursor: crosshair;
+}
+#hud {
+position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+z-index: 10; pointer-events: none; display: none;
+}
+.xp-wrap {
+position: absolute; top: 0; left: 0; width: 100%; height: 8px;
+background: #0f172a; border-bottom: 1px solid #1e293b;
+}
+#xpBar {
+width: 0%; height: 100%;
+background: linear-gradient(90deg, #0284c7, #38bdf8);
+transition: width 0.15s;
+}
+.hud-top {
+position: absolute; top: 14px; left: 14px; right: 14px;
+display: flex; justify-content: space-between; align-items: flex-start;
+}
+.hud-card {
+background: rgba(9, 12, 18, 0.88); border: 1px solid #263040;
+border-left: 3px solid #f59e0b; padding: 8px 12px; border-radius: 4px;
+font-size: 13px; line-height: 1.45;
+}
+.hud-center {
+position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+background: rgba(9, 12, 18, 0.9); border: 1px solid #263040;
+padding: 6px 18px; border-radius: 4px; text-align: center;
+}
+#timerTxt {
+font-family: monospace; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: 2px;
+}
+#rivalHud {
+display: none; font-size: 11px; color: #f59e0b; font-weight: 700; margin-top: 2px;
+}
+.modal-bg {
+position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+z-index: 30; background: rgba(4, 6, 9, 0.92);
+display: flex; align-items: center; justify-content: center; padding: 14px;
+}
+.modal-box {
+width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto;
+background: #0d1117; border: 1px solid #2a3444; border-top: 3px solid #f59e0b;
+border-radius: 6px; padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+}
+.badge {
+display: inline-block; font-size: 11px; font-weight: 700; color: #f59e0b;
+background: rgba(245, 158, 11, 0.14); padding: 3px 8px; border-radius: 3px;
+margin-bottom: 8px; letter-spacing: 1px;
+}
+.title { font-size: 22px; font-weight: 800; color: #ffffff; margin-bottom: 6px; }
+.desc { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 16px; }
+.inp {
+width: 100%; background: #06080b; border: 1px solid #334155; color: #ffffff;
+padding: 11px 12px; border-radius: 4px; font-size: 14px; font-weight: 700;
+margin-bottom: 12px; outline: none; user-select: text; -webkit-user-select: text;
+}
+.inp:focus { border-color: #f59e0b; }
+.btn {
+width: 100%; border: none; border-radius: 4px; padding: 13px 16px;
+font-size: 14px; font-weight: 800; cursor: pointer; transition: 0.15s;
+text-align: center; display: block; margin-bottom: 8px;
+}
+.btn-amber { background: #f59e0b; color: #06080b; font-size: 15px; }
+.btn-amber:hover { background: #fbbf24; }
+.btn-dark { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; }
+.btn-dark:hover { background: #334155; }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lb-wrap {
+background: #07090d; border: 1px solid #1e293b; border-radius: 4px;
+padding: 10px 12px; margin-top: 12px;
+}
+.lb-head {
+font-size: 12px; font-weight: 700; color: #94a3b8;
+display: flex; justify-content: space-between; margin-bottom: 6px;
+}
+.lb-ul { list-style: none; max-height: 140px; overflow-y: auto; font-size: 12px; }
+.lb-li {
+display: flex; justify-content: space-between; padding: 5px 6px;
+border-bottom: 1px solid #111620;
+}
+.lb-rival { background: rgba(245, 158, 11, 0.15); border-left: 2px solid #f59e0b; }
+.skill-item {
+background: #121822; border: 1px solid #283244; border-radius: 5px;
+padding: 12px 14px; margin-bottom: 9px; cursor: pointer;
+display: flex; align-items: center; gap: 12px; transition: 0.15s;
+}
+.skill-item:hover { border-color: #f59e0b; background: #18202c; }
+.skill-badge {
+width: 44px; height: 44px; border-radius: 5px; background: #090c12;
+border: 1px solid #3b485e; color: #f59e0b; font-weight: 900; font-size: 12px;
+display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+.stat-box {
+background: #080b10; border: 1px solid #1e293b; padding: 10px;
+border-radius: 4px; text-align: center;
+}
+.stat-num { font-size: 20px; font-weight: 800; color: #f59e0b; font-family: monospace; }
+.stat-txt { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+#toast {
+position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+background: #10b981; color: #04130e; font-weight: 800; font-size: 13px;
+padding: 10px 18px; border-radius: 25px; z-index: 100;
+opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+#joyPad {
+position: fixed; bottom: 30px; left: 30px; width: 104px; height: 104px;
+border-radius: 50%; border: 2px dashed rgba(255,255,255,0.22);
+z-index: 15; display: none; pointer-events: none;
+}
+#joyStick {
+position: absolute; top: 50%; left: 50%; width: 42px; height: 42px;
+margin-top: -21px; margin-left: -21px; border-radius: 50%;
+background: rgba(245, 158, 11, 0.55); border: 2px solid #f59e0b;
+}
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="hud">
+<div class="xp-wrap"><div id="xpBar"></div></div>
+<div class="hud-top">
+<div class="hud-card">
+<div id="hudName" style="font-weight:800; color:#fff;">AGENT</div>
+<div style="color:#38bdf8; font-weight:700;">LV. <span id="hudLv">1</span></div>
+<div style="color:#94a3b8; font-size:11px;">HP <span id="hudHp">100/100</span></div>
+</div>
+<div class="hud-card" style="border-left-color:#ef4444; text-align:right;">
+<div>KILLS : <strong id="hudKills" style="color:#fff;">0</strong></div>
+<div style="font-size:11px; color:#94a3b8;">WAVE : <span id="hudWave" style="color:#f59e0b;">STAGE 1</span></div>
+</div>
+</div>
+<div class="hud-center">
+<div id="timerTxt">00:00</div>
+<div id="rivalHud">TARGET</div>
+</div>
+<div id="joyPad"><div id="joyStick"></div></div>
+</div>
+
+<!-- 시작 로비 -->
+<div id="startModal" class="modal-bg">
+<div class="modal-box">
+<span class="badge">DARK TACTICAL SURVIVAL</span>
+<div class="title">ASHES OF OBLIVION : PROTOCOL ZERO</div>
+<div class="desc" id="uiStartDesc"></div>
+<div id="rivalAlert" style="display:none; background:rgba(239,68,68,0.16); border:1px solid #ef4444; padding:9px 12px; border-radius:4px; margin-bottom:12px; font-size:12px; color:#fca5a5;"></div>
+<input type="text" id="nameInp" class="inp" maxlength="14" value="GHOST-01">
+<button class="btn btn-amber" id="startBtn"></button>
+<div class="lb-wrap">
+<div class="lb-head">
+<span id="uiLbTitle"></span>
+<span style="color:#f59e0b;">WASD / TOUCH</span>
+</div>
+<ul class="lb-ul" id="lbList"></ul>
+</div>
+</div>
+</div>
+
+<!-- 레벨업 모달 -->
+<div id="lvModal" class="modal-bg" style="display:none;">
+<div class="modal-box">
+<span class="badge">TACTICAL SUPPLY DROP</span>
+<div class="title" id="uiLvTitle"></div>
+<div class="desc" id="uiLvDesc"></div>
+<div id="skillList"></div>
+</div>
+</div>
+
+<!-- 결과 모달 -->
+<div id="overModal" class="modal-bg" style="display:none;">
+<div class="modal-box">
+<span class="badge" style="color:#ef4444; background:rgba(239,68,68,0.15);">SIGNAL LOST // KIA</span>
+<div class="title" id="uiOverTitle"></div>
+<div class="desc" id="uiOverDesc"></div>
+<div class="stat-row">
+<div class="stat-box"><div class="stat-num" id="resTime">00:00</div><div class="stat-txt">SURVIVED</div></div>
+<div class="stat-box"><div class="stat-num" id="resKills">0</div><div class="stat-txt">HOSTILES KILLED</div></div>
+<div class="stat-box"><div class="stat-num" id="resLv">1</div><div class="stat-txt">FINAL LEVEL</div></div>
+</div>
+<button class="btn btn-amber" id="shareBtn"></button>
+<div class="row-2">
+<button class="btn btn-dark" id="imgBtn"></button>
+<button class="btn btn-dark" id="retryBtn"></button>
+</div>
+</div>
+</div>
+
+<div id="toast">COPIED</div>
+
+<script>
+(function() {
+// 인코딩이 깨져도 100% 한글이 정상 출력되도록 유니코드 안전 문자열 적용
+var TXT = {
+startDesc: "\uc554\ud751 \uc624\uc5fc \uad6c\uc5ed\uc5d0\uc11c \ubab0\ub824\ub4dc\ub294 \ubcc0\uc774\uccb4 \ubb34\ub9ac\ub97c \uc0ac\uc0b4\ud558\uace0 \ucd5c\ub300\ud55c \uc624\ub798 \ubc84\ud2f0\uc2ed\uc2dc\uc624. \ub9e4 \ub808\ubca8\uc5c5\ub9c8\ub2e4 \uc804\uc220 \ubb34\uc7a5\uc744 \uc120\ud0dd\ud558\uba70, \uc885\ub8cc \ud6c4 \uce5c\uad6c\uc5d0\uac8c \ub3c4\uc804\uc7a5 \ub9c1\ud06c\uc640 \uc778\uc99d\uc11c\ub97c \uacf5\uc720\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.",
+startBtn: "\uc791\uc804 \uad6c\uc5ed \uac15\ud558 (START MISSION)",
+lbTitle: "\uba85\uc608\uc758 \uc804\ub2f9 (LEADERBOARD)",
+lvTitle: "\uc804\uc220 \ubb34\uc7a5 \ubcf4\uae09 \uc120\ud0dd",
+lvDesc: "\uc0dd\uccb4 \ucf54\uc5b4 \uacf5\uba85 \uc644\ub8cc. \uc989\uc2dc \uc7a5\ucc29\ud560 \uc804\uc220 \ubaa8\ub4c8 1\uc885\uc744 \uc120\ud0dd\ud558\uc2ed\uc2dc\uc624.",
+overTitle: "\uc791\uc804 \uacb0\uacfc \ubcf4\uace0\uc11c (AAR)",
+overDesc: "\uc624\uc5fc \uad6c\uc5ed\uc5d0\uc11c \uaca9\ub82c\ud788 \uad50\uc804\ud588\uc73c\ub098 \uc0dd\uccb4 \uc2e0\ud638\uac00 \uc18c\uc2e4\ub418\uc5c8\uc2b5\ub2c8\ub2e4.",
+shareBtn: "\uce5c\uad6c\uc5d0\uac8c \ub3c4\uc804\uc7a5 \ub9c1\ud06c & \uc790\ub791 \ubb38\uad6c \ubcf5\uc0ac",
+imgBtn: "\uc778\uc99d\uc11c \uc774\ubbf8\uc9c0(PNG) \uc800\uc7a5",
+retryBtn: "\uc989\uc2dc \uc7ac\ucd9c\uaca9 (RETRY)",
+copied: "\ub3c4\uc804\uc7a5 \ub9c1\ud06c\uc640 \uc804\uc801\uc774 \ubcf5\uc0ac\ub418\uc5c8\uc2b5\ub2c8\ub2e4! \uce74\ud1a1\uc5d0 \ubd99\uc5ec\ub123\uc73c\uc138\uc694.",
+rivalAlertPre: "[TARGET] ",
+rivalAlertPost: " \uae30\ub85d\uc744 \ub3cc\ud30c\ud558\uc2ed\uc2dc\uc624!"
+};
+
+document.getElementById('uiStartDesc').textContent = TXT.startDesc;
+document.getElementById('startBtn').textContent = TXT.startBtn;
+document.getElementById('uiLbTitle').textContent = TXT.lbTitle;
+document.getElementById('uiLvTitle').textContent = TXT.lvTitle;
+document.getElementById('uiLvDesc').textContent = TXT.lvDesc;
+document.getElementById('uiOverTitle').textContent = TXT.overTitle;
+document.getElementById('uiOverDesc').textContent = TXT.overDesc;
+document.getElementById('shareBtn').textContent = TXT.shareBtn;
+document.getElementById('imgBtn').textContent = TXT.imgBtn;
+document.getElementById('retryBtn').textContent = TXT.retryBtn;
+
+var canvas = document.getElementById('gameCanvas');
+var ctx = canvas.getContext('2d');
+var W = window.innerWidth, H = window.innerHeight;
+
+function resize() {
+W = window.innerWidth || document.documentElement.clientWidth || 800;
+H = window.innerHeight || document.documentElement.clientHeight || 600;
+canvas.width = W;
+canvas.height = H;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function toast(msg) {
+var el = document.getElementById('toast');
+el.textContent = msg;
+el.style.opacity = '1';
+setTimeout(function() { el.style.opacity = '0'; }, 2400);
+}
+
+// 사운드 신디사이저
+var audioCtx = null;
+function initAudio() {
+try {
+if (!audioCtx) {
+var AC = window.AudioContext || window.webkitAudioContext;
+if (AC) audioCtx = new AC();
+}
+if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+} catch (e) {}
+}
+
+function sfx(type) {
+if (!audioCtx) return;
+try {
+var now = audioCtx.currentTime;
+var osc = audioCtx.createOscillator();
+var g = audioCtx.createGain();
+osc.connect(g); g.connect(audioCtx.destination);
+if (type === 'shot') {
+osc.type = 'sawtooth';
+osc.frequency.setValueAtTime(200, now);
+osc.frequency.exponentialRampToValueAtTime(42, now + 0.08);
+g.gain.setValueAtTime(0.15, now);
+g.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+osc.start(now); osc.stop(now + 0.09);
+} else if (type === 'rail') {
+osc.type = 'square';
+osc.frequency.setValueAtTime(620, now);
+osc.frequency.exponentialRampToValueAtTime(80, now + 0.17);
+g.gain.setValueAtTime(0.18, now);
+g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+osc.start(now); osc.stop(now + 0.18);
+} else if (type === 'boom') {
+osc.type = 'triangle';
+osc.frequency.setValueAtTime(100, now);
+osc.frequency.exponentialRampToValueAtTime(20, now + 0.4);
+g.gain.setValueAtTime(0.3, now);
+g.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+osc.start(now); osc.stop(now + 0.42);
+}
+} catch (e) {}
+}
+
+// URL 도전장 파라미터 확인
+var params = new URLSearchParams(window.location.search);
+var rivalName = params.get('rival');
+var rivalTime = parseInt(params.get('time') || '0', 10);
+var rivalKills = parseInt(params.get('kills') || '0', 10);
+var rivalBeaten = false;
+
+function fmtTime(sec) {
+var m = Math.floor(sec / 60);
+var s = Math.floor(sec % 60);
+return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+}
+
+// 리더보드
+var LB_KEY = 'pzero_standalone_lb';
+function getLb() {
+var arr = [];
+try { arr = JSON.parse(localStorage.getItem(LB_KEY) || '[]'); } catch (e) { arr = []; }
+if (!arr || arr.length === 0) {
+arr = [
+{ name: 'VANGUARD-1', time: 180, kills: 410, rival: false },
+{ name: 'REAPER-07', time: 125, kills: 260, rival: false },
+{ name: 'DELTA-9', time: 70, kills: 120, rival: false }
+ ];
+}
+if (rivalName && rivalTime > 0) {
+var found = false;
+for (var i = 0; i < arr.length; i++) {
+if (arr[i].name === '[TARGET] ' + rivalName && arr[i].time === rivalTime) found = true;
+}
+if (!found) arr.push({ name: '[TARGET] ' + rivalName, time: rivalTime, kills: rivalKills, rival: true });
+}
+arr.sort(function(a, b) { return b.time - a.time || b.kills - a.kills; });
+return arr.slice(0, 8);
+}
+
+function saveLb(name, time, kills) {
+var arr = getLb();
+arr.push({ name: name, time: time, kills: kills, rival: false });
+arr.sort(function(a, b) { return b.time - a.time || b.kills - a.kills; });
+try { localStorage.setItem(LB_KEY, JSON.stringify(arr.slice(0, 10))); } catch (e) {}
+renderLb();
+}
+
+function renderLb() {
+var arr = getLb();
+var ul = document.getElementById('lbList');
+var html = '';
+for (var i = 0; i < arr.length; i++) {
+var r = arr[i];
+html += '<li class="lb-li ' + (r.rival ? 'lb-rival' : '') + '">' +
+'<span><strong>#' + (i + 1) + '</strong> ' + r.name + '</span>' +
+'<span style="font-family:monospace; color:#f59e0b;">' + fmtTime(r.time) + ' (' + r.kills + ' KILLS)</span>' +
+'</li>';
+}
+ul.innerHTML = html;
+}
+
+if (rivalName && rivalTime > 0) {
+var ra = document.getElementById('rivalAlert');
+ra.style.display = 'block';
+ra.textContent = TXT.rivalAlertPre + rivalName + ' (' + fmtTime(rivalTime) + ' / ' + rivalKills + ' KILLS)' + TXT.rivalAlertPost;
+}
+renderLb();
+
+// 전술 스킬 데이터
+var SKILLS = {
+shotgun: {
+code: 'SG-12',
+name: 'M1014 \uc804\uc220 \uc0b0\ud0c4\ucd1d',
+desc: '\uc804\ubc29\uc73c\ub85c \ub300\uad6c\uaca9 \ubc85\uc0f7\uc744 \ubc29\uc0ac\ud569\ub2c8\ub2e4. \ub808\ubca8\uc5c5 \uc2dc \ud0c4\ud658 \uc218\uc640 \uad00\ud1b5\ub825\uc774 \uc99d\uac00\ud569\ub2c8\ub2e4.'
+},
+blades: {
+code: 'SAW-X',
+name: '\uc790\uc728 \ud68c\uc804 \ud2f0\ud0c0\ub284 \ub4dc\ub860',
+desc: '\uc694\uc6d0 \uc8fc\uc704\ub97c \uace0\uc18d \ud68c\uc804\ud558\uba70 \uc811\uadfc\ud558\ub294 \uac10\uc5fc\uccb4\ub97c \ubca0\uc5b4\ub0c5\ub2c8\ub2e4.'
+},
+emp: {
+code: 'EMP-9',
+name: '\uace0\ucd9c\ub825 \uc544\ud06c \ubc29\uc804\uc7a5',
+desc: '\uc8fc\uae30\uc801\uc73c\ub85c \uc8fc\ubcc0 \ubaa8\ub4e0 \uc801\uc5d0\uac8c \uace0\uc804\uc555 \ud50c\ub77c\uc988\ub9c8 \ucda9\uaca9\ud30c\ub97c \ubc29\ucd9c\ud569\ub2c8\ub2e4.'
+},
+railgun: {
+code: 'RG-50',
+name: '\uc5f4\ud654\uc6b0\ub77c\ub284 \uad00\ud1b5 \uc800\uaca9\ud3ec',
+desc: '\uac00\uc7a5 \uc704\ud611\uc801\uc778 \ud45c\uc801\uc744 \uc870\uc900\ud574 \uc77c\uc9c1\uc120\uc0c1\uc758 \ubaa8\ub4e0 \uc801\uc744 \uad00\ud1b5\ud569\ub2c8\ub2e4.'
+},
+orbital: {
+code: 'ORB-V',
+name: '\ubc1c\ud0a4\ub9ac \uadd4\ub3c4 \uc5f4\uc555\ub825 \ud3ed\uaca9',
+desc: '\uc704\uc131\uc5d0\uc11c \uc5f4\uc555\ub825\ud0c4\uc744 \ud22c\ud558\ud574 \ubc00\uc9d1 \uc9c0\uc5ed\uc744 \ucd08\ud1a0\ud654\ud569\ub2c8\ub2e4.'
+},
+dmgUp: {
+code: 'AP+25',
+name: '\ud560\ub85c\uc6b0 \ud3ec\uc778\ud2b8 \ud0c4\ub450 \uac1c\uc870',
+desc: '\ubaa8\ub4e0 \ubb34\uae30\uc758 \uacf5\uaca9\ub825\uc774 +25% \uc99d\uac00\ud569\ub2c8\ub2e4.'
+},
+haste: {
+code: 'CD-15',
+name: '\uc624\ubc84\ud074\ub7ed \ub0c9\uac01 \ubaa8\ub4c8',
+desc: '\ubaa8\ub4e0 \ubb34\uae30\uc758 \uc7ac\uc7a5\uc804 \ubc0f \ubc1c\uc0ac \uc18d\ub3c4\uac00 +16% \ube68\ub77c\uc9d1\ub2c8\ub2e4.'
+},
+boots: {
+code: 'SPD+',
+name: '\uc5d1\uc18c \uc2a4\ucf08\ub808\ud1a4 \uac01\ubc18',
+desc: '\uc694\uc6d0\uc758 \uc774\ub3d9 \uc18d\ub3c4\uac00 +15% \uc99d\uac00\ud569\ub2c8\ub2e4.'
+},
+magnet: {
+code: 'MAG+',
+name: '\uc0dd\uccb4 \ucf54\uc5b4 \uc790\uae30\uc7a5 \uc99d\ud3ed\uae30',
+desc: '\ucf54\uc5b4 \ud761\uc218 \ubc18\uacbd\uc774 +45% \uc99d\uac00\ud558\uace0 \uccb4\ub825\uc744 30 \ud68c\ubcf5\ud569\ub2c8\ub2e4.'
+}
+};
+
+var state = 'MENU';
+var agentName = 'GHOST-01';
+var elapsed = 0, kills = 0, shake = 0;
+
+var player = {
+x: 0, y: 0, r: 15, hp: 100, maxHp: 100, speed: 220,
+lv: 1, xp: 0, nextXp: 10, angle: 0,
+dmgMult: 1, cdMult: 1, magRange: 120,
+skills: { shotgun: 1, blades: 0, emp: 0, railgun: 0, orbital: 0, dmgUp: 0, haste: 0, boots: 0, magnet: 0 },
+timers: { shotgun: 0, emp: 0, railgun: 0, orbital: 0 }
+};
+
+var enemies = [], bullets = [], gems = [], particles = [], decals = [], shells = [];
+var spawnT = 0;
+
+// 키보드 & 터치 입력
+var keys = {};
+window.addEventListener('keydown', function(e) { keys[e.code] = true; });
+window.addEventListener('keyup', function(e) { keys[e.code] = false; });
+
+var tActive = false, tSX = 0, tSY = 0, jX = 0, jY = 0;
+var joyPad = document.getElementById('joyPad');
+var joyStick = document.getElementById('joyStick');
+
+window.addEventListener('touchstart', function(e) {
+if (state !== 'PLAY') return;
+var t = e.touches[0];
+tActive = true; tSX = t.clientX; tSY = t.clientY;
+joyPad.style.display = 'block';
+joyPad.style.left = (tSX - 52) + 'px';
+joyPad.style.top = (tSY - 52) + 'px';
+joyStick.style.transform = 'translate(0px,0px)';
+}, { passive: false });
+
+window.addEventListener('touchmove', function(e) {
+if (!tActive || state !== 'PLAY') return;
+e.preventDefault();
+var t = e.touches[0];
+var dx = t.clientX - tSX, dy = t.clientY - tSY;
+var d = Math.sqrt(dx * dx + dy * dy);
+var maxR = 42;
+if (d > 0) {
+var cl = Math.min(d, maxR);
+jX = (dx / d) * (cl / maxR);
+jY = (dy / d) * (cl / maxR);
+joyStick.style.transform = 'translate(' + (jX * maxR) + 'px,' + (jY * maxR) + 'px)';
+}
+}, { passive: false });
+
+window.addEventListener('touchend', function() {
+tActive = false; jX = 0; jY = 0;
+joyPad.style.display = 'none';
+});
+
+function startGame() {
+initAudio();
+var v = document.getElementById('nameInp').value.trim();
+agentName = v || 'GHOST-01';
+document.getElementById('hudName').textContent = agentName;
+
+player.x = 0; player.y = 0; player.hp = 100; player.maxHp = 100; player.speed = 220;
+player.lv = 1; player.xp = 0; player.nextXp = 10;
+player.dmgMult = 1; player.cdMult = 1; player.magRange = 120;
+for (var k in player.skills) player.skills[k] = 0;
+player.skills.shotgun = 1;
+player.timers = { shotgun: 0, emp: 0, railgun: 0, orbital: 0 };
+
+elapsed = 0; kills = 0; shake = 0; rivalBeaten = false;
+enemies = []; bullets = []; gems = []; particles = []; decals = []; shells = [];
+
+document.getElementById('startModal').style.display = 'none';
+document.getElementById('overModal').style.display = 'none';
+document.getElementById('lvModal').style.display = 'none';
+document.getElementById('hud').style.display = 'block';
+
+if (rivalName && rivalTime > 0) {
+document.getElementById('rivalHud').style.display = 'block';
+}
+updateHud();
+state = 'PLAY';
+}
+
+function updateHud() {
+document.getElementById('hudLv').textContent = player.lv;
+document.getElementById('hudHp').textContent = Math.ceil(player.hp) + '/' + player.maxHp;
+document.getElementById('hudKills').textContent = kills;
+document.getElementById('xpBar').style.width = Math.min(100, (player.xp / player.nextXp) * 100) + '%';
+document.getElementById('timerTxt').textContent = fmtTime(elapsed);
+document.getElementById('hudWave').textContent = 'STAGE ' + (1 + Math.floor(elapsed / 35));
+
+if (rivalName && rivalTime > 0) {
+var rem = rivalTime - Math.floor(elapsed);
+var rh = document.getElementById('rivalHud');
+if (rem > 0) {
+rh.style.color = '#f59e0b';
+rh.textContent = 'TARGET [' + rivalName + '] -' + fmtTime(rem);
+} else {
+rh.style.color = '#10b981';
+rh.textContent = 'TARGET [' + rivalName + '] BEATEN!';
+if (!rivalBeaten) {
+rivalBeaten = true;
+toast(rivalName + ' RECORD BEATEN!');
+}
+}
+}
+}
+
+function spawnEnemy() {
+var a = Math.random() * Math.PI * 2;
+var dist = Math.max(W, H) * 0.6 + 70;
+var ex = player.x + Math.cos(a) * dist;
+var ey = player.y + Math.sin(a) * dist;
+var sc = 1 + elapsed / 45;
+var roll = Math.random();
+var r = 13, hp = 24 * sc, spd = 84 + Math.random() * 24, col = '#4b5563', xp = 3;
+if (elapsed > 20 && roll < 0.24) {
+r = 10; hp = 15 * sc; spd = 152; col = '#991b1b'; xp = 4;
+} else if (elapsed > 45 && roll > 0.85) {
+r = 23; hp = 115 * sc; spd = 56; col = '#3f6212'; xp = 14;
+}
+enemies.push({ x: ex, y: ey, r: r, hp: hp, maxHp: hp, speed: spd, col: col, xp: xp, flash: 0 });
+}
+
+function closestEnemy(maxD) {
+var best = null, bd = maxD;
+for (var i = 0; i < enemies.length; i++) {
+var e = enemies[i];
+var d = Math.hypot(e.x - player.x, e.y - player.y);
+if (d < bd) { bd = d; best = e; }
+}
+return best;
+}
+
+function hitEnemy(e, dmg, knock) {
+e.hp -= dmg;
+e.flash = 0.08;
+var a = Math.atan2(e.y - player.y, e.x - player.x);
+e.x += Math.cos(a) * (knock || 6);
+e.y += Math.sin(a) * (knock || 6);
+if (e.hp <= 0) {
+kills++;
+gems.push({ x: e.x, y: e.y, val: e.xp });
+if (decals.length > 80) decals.shift();
+decals.push({ x: e.x, y: e.y, r: e.r * (0.9 + Math.random() * 0.5), blood: true });
+for (var i = 0; i < 5; i++) {
+var pa = Math.random() * Math.PI * 2;
+var ps = 40 + Math.random() * 100;
+particles.push({ x: e.x, y: e.y, vx: Math.cos(pa) * ps, vy: Math.sin(pa) * ps, r: 2.5, col: '#dc2626', life: 0.3, max: 0.3 });
+}
+}
+}
+
+function openLevelUp() {
+state = 'LEVELUP';
+var keys = Object.keys(SKILLS);
+keys.sort(function() { return Math.random() - 0.5; });
+var pick = keys.slice(0, 3);
+var box = document.getElementById('skillList');
+box.innerHTML = '';
+pick.forEach(function(k) {
+var s = SKILLS[k];
+var lv = player.skills[k];
+var div = document.createElement('div');
+div.className = 'skill-item';
+div.innerHTML =
+'<div class="skill-badge">' + s.code + '</div>' +
+'<div style="flex:1;">' +
+'<div style="display:flex; justify-content:space-between; margin-bottom:4px;">' +
+'<strong style="color:#fff; font-size:14px;">' + s.name + '</strong>' +
+'<span style="color:#f59e0b; font-size:11px; font-weight:800;">' + (lv === 0 ? 'NEW' : 'LV.' + lv + ' -> LV.' + (lv + 1)) + '</span>' +
+'</div>' +
+'<div style="color:#94a3b8; font-size:12px;">' + s.desc + '</div>' +
+'</div>';
+div.onclick = function() {
+player.skills[k]++;
+if (k === 'dmgUp') player.dmgMult += 0.25;
+if (k === 'haste') player.cdMult *= 0.85;
+if (k === 'boots') player.speed *= 1.15;
+if (k === 'magnet') {
+player.magRange *= 1.45;
+player.maxHp += 30;
+player.hp = Math.min(player.maxHp, player.hp + 30);
+}
+document.getElementById('lvModal').style.display = 'none';
+state = 'PLAY';
+updateHud();
+};
+box.appendChild(div);
+});
+document.getElementById('lvModal').style.display = 'flex';
+}
+
+function update(dt) {
+if (state !== 'PLAY') return;
+elapsed += dt;
+if (shake > 0) shake = Math.max(0, shake - dt * 25);
+
+var mx = 0, my = 0;
+if (keys['KeyW'] || keys['ArrowUp']) my -= 1;
+if (keys['KeyS'] || keys['ArrowDown']) my += 1;
+if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
+if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
+
+if (tActive) {
+mx = jX; my = jY;
+} else if (mx !== 0 || my !== 0) {
+var l = Math.hypot(mx, my);
+mx /= l; my /= l;
+}
+
+player.x += mx * player.speed * dt;
+player.y += my * player.speed * dt;
+
+var tgt = closestEnemy(650);
+if (tgt) {
+player.angle = Math.atan2(tgt.y - player.y, tgt.x - player.x);
+} else if (mx !== 0 || my !== 0) {
+player.angle = Math.atan2(my, mx);
+}
+
+// 1. 산탄총
+player.timers.shotgun -= dt;
+if (player.timers.shotgun <= 0) {
+var lv = player.skills.shotgun;
+player.timers.shotgun = Math.max(0.26, (0.92 - lv * 0.06) * player.cdMult);
+var cnt = 3 + lv;
+var sp = 0.35;
+for (var i = 0; i < cnt; i++) {
+var a = player.angle + (i - (cnt - 1) / 2) * (sp / cnt);
+bullets.push({
+x: player.x + Math.cos(player.angle) * 16,
+y: player.y + Math.sin(player.angle) * 16,
+vx: Math.cos(a) * 700, vy: Math.sin(a) * 700,
+dmg: (19 + lv * 6) * player.dmgMult,
+pierce: 1 + Math.floor(lv / 2),
+life: 0.75, col: '#fbbf24', r: 3.2
+});
+}
+// 탄피 배출
+if (shells.length > 60) shells.shift();
+var sa = player.angle + Math.PI / 2 + (Math.random() - 0.5) * 0.4;
+shells.push({ x: player.x + Math.cos(sa) * 12, y: player.y + Math.sin(sa) * 12 });
+particles.push({ x: player.x + Math.cos(player.angle) * 20, y: player.y + Math.sin(player.angle) * 20, vx: 0, vy: 0, r: 9, col: '#fef08a', life: 0.05, max: 0.05 });
+sfx('shot');
+}
+
+// 2. 회전 드론
+if (player.skills.blades > 0) {
+var blv = player.skills.blades;
+var bcnt = 1 + blv;
+var br = 78 + blv * 6;
+var rot = elapsed * (3.8 + blv * 0.4);
+for (var bi = 0; bi < bcnt; bi++) {
+var ba = rot + (bi * Math.PI * 2) / bcnt;
+var bx = player.x + Math.cos(ba) * br;
+var by = player.y + Math.sin(ba) * br;
+for (var ei = 0; ei < enemies.length; ei++) {
+var e = enemies[ei];
+if (Math.hypot(e.x - bx, e.y - by) < e.r + 14) {
+hitEnemy(e, (48 + blv * 15) * player.dmgMult * dt * 4, 2);
+}
+}
+}
+}
+
+// 3. EMP 방전
+if (player.skills.emp > 0) {
+player.timers.emp -= dt;
+if (player.timers.emp <= 0) {
+var elv = player.skills.emp;
+player.timers.emp = Math.max(1.1, (3.1 - elv * 0.2) * player.cdMult);
+var erad = 125 + elv * 22;
+particles.push({ x: player.x, y: player.y, vx: 0, vy: 0, r: erad, col: '#38bdf8', life: 0.22, max: 0.22, ring: true });
+for (var ei2 = 0; ei2 < enemies.length; ei2++) {
+var e2 = enemies[ei2];
+if (Math.hypot(e2.x - player.x, e2.y - player.y) <= erad) {
+hitEnemy(e2, (28 + elv * 12) * player.dmgMult, 16);
+}
+}
+}
+}
+
+// 4. 레일건
+if (player.skills.railgun > 0) {
+player.timers.railgun -= dt;
+if (player.timers.railgun <= 0 && enemies.length > 0) {
+var rlv = player.skills.railgun;
+player.timers.railgun = Math.max(1.0, (2.7 - rlv * 0.22) * player.cdMult);
+var topE = enemies[0];
+for (var ri = 1; ri < enemies.length; ri++) if (enemies[ri].hp > topE.hp) topE = enemies[ri];
+var ra = Math.atan2(topE.y - player.y, topE.x - player.x);
+bullets.push({
+x: player.x, y: player.y,
+vx: Math.cos(ra) * 1150, vy: Math.sin(ra) * 1150,
+dmg: (68 + rlv * 30) * player.dmgMult,
+pierce: 99, life: 0.9, col: '#22d3ee', r: 5.5
+});
+sfx('rail');
+}
+}
+
+// 5. 궤도 폭격
+if (player.skills.orbital > 0) {
+player.timers.orbital -= dt;
+if (player.timers.orbital <= 0 && enemies.length > 0) {
+var olv = player.skills.orbital;
+player.timers.orbital = Math.max(1.6, (4.3 - olv * 0.35) * player.cdMult);
+var pickE = enemies[Math.floor(Math.random() * enemies.length)];
+var orad = 115 + olv * 18;
+shake = 9;
+sfx('boom');
+if (decals.length > 80) decals.shift();
+decals.push({ x: pickE.x, y: pickE.y, r: orad * 0.7, blood: false });
+particles.push({ x: pickE.x, y: pickE.y, vx: 0, vy: 0, r: orad, col: '#f97316', life: 0.35, max: 0.35, ring: true });
+for (var oi = 0; oi < enemies.length; oi++) {
+var oe = enemies[oi];
+if (Math.hypot(oe.x - pickE.x, oe.y - pickE.y) <= orad) {
+hitEnemy(oe, (95 + olv * 40) * player.dmgMult, 24);
+}
+}
+}
+}
+
+// 탄환 처리
+for (var i = bullets.length - 1; i >= 0; i--) {
+var b = bullets[i];
+b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+if (b.life <= 0) { bullets.splice(i, 1); continue; }
+for (var j = enemies.length - 1; j >= 0; j--) {
+var e = enemies[j];
+if (Math.hypot(e.x - b.x, e.y - b.y) < e.r + b.r) {
+hitEnemy(e, b.dmg, 7);
+b.pierce--;
+if (b.pierce <= 0) { bullets.splice(i, 1); break; }
+}
+}
+}
+
+enemies = enemies.filter(function(e) { return e.hp > 0; });
+
+spawnT -= dt;
+if (spawnT <= 0) {
+spawnT = Math.max(0.08, 0.65 - elapsed * 0.0035);
+var batch = 1 + Math.floor(elapsed / 38);
+for (var si = 0; si < batch; si++) if (enemies.length < 220) spawnEnemy();
+}
+
+for (var ei3 = 0; ei3 < enemies.length; ei3++) {
+var en = enemies[ei3];
+if (en.flash > 0) en.flash -= dt;
+var ea = Math.atan2(player.y - en.y, player.x - en.x);
+en.x += Math.cos(ea) * en.speed * dt;
+en.y += Math.sin(ea) * en.speed * dt;
+if (Math.hypot(player.x - en.x, player.y - en.y) < player.r + en.r) {
+player.hp -= (18 + elapsed * 0.12) * dt;
+shake = 4;
+if (player.hp <= 0) {
+player.hp = 0;
+gameOver();
+return;
+}
+}
+}
+
+for (var gi = gems.length - 1; gi >= 0; gi--) {
+var g = gems[gi];
+var gd = Math.hypot(player.x - g.x, player.y - g.y);
+if (gd < player.magRange) {
+var ga = Math.atan2(player.y - g.y, player.x - g.x);
+g.x += Math.cos(ga) * 480 * dt;
+g.y += Math.sin(ga) * 480 * dt;
+}
+if (gd < player.r + 10) {
+player.xp += g.val;
+gems.splice(gi, 1);
+if (player.xp >= player.nextXp) {
+player.xp -= player.nextXp;
+player.lv++;
+player.nextXp = Math.floor(player.nextXp * 1.32 + 8);
+openLevelUp();
+return;
+}
+}
+}
+
+for (var pi = particles.length - 1; pi >= 0; pi--) {
+var p = particles[pi];
+p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+if (p.life <= 0) particles.splice(pi, 1);
+}
+
+updateHud();
+}
+
+function draw() {
+ctx.fillStyle = '#0a0d12';
+ctx.fillRect(0, 0, W, H);
+
+ctx.save();
+var sx = shake > 0 ? (Math.random() - 0.5) * shake : 0;
+var sy = shake > 0 ? (Math.random() - 0.5) * shake : 0;
+var camX = W / 2 - player.x + sx;
+var camY = H / 2 - player.y + sy;
+ctx.translate(camX, camY);
+
+// 전술 그리드 바닥 (createPattern 없이 100% 호환되는 직접 드로잉)
+var step = 90;
+var startX = Math.floor((player.x - W) / step) * step;
+var endX = player.x + W;
+var startY = Math.floor((player.y - H) / step) * step;
+var endY = player.y + H;
+ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+ctx.lineWidth = 1;
+ctx.beginPath();
+for (var gx = startX; gx <= endX; gx += step) {
+ctx.moveTo(gx, startY); ctx.lineTo(gx, endY);
+}
+for (var gy = startY; gy <= endY; gy += step) {
+ctx.moveTo(startX, gy); ctx.lineTo(endX, gy);
+}
+ctx.stroke();
+
+// 혈흔 및 크레이터 데칼
+for (var di = 0; di < decals.length; di++) {
+var d = decals[di];
+ctx.fillStyle = d.blood ? 'rgba(85, 12, 12, 0.55)' : 'rgba(5, 6, 8, 0.75)';
+ctx.beginPath();
+ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+ctx.fill();
+}
+
+// 탄피
+ctx.fillStyle = '#d97706';
+for (var si = 0; si < shells.length; si++) {
+ctx.fillRect(shells[si].x, shells[si].y, 4, 2);
+}
+
+// 전술 손전등 조명 효과 (Cone Light)
+ctx.save();
+ctx.translate(player.x, player.y);
+ctx.rotate(player.angle);
+var coneGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, 340);
+coneGrad.addColorStop(0, 'rgba(254, 243, 199, 0.16)');
+coneGrad.addColorStop(1, 'rgba(254, 243, 199, 0)');
+ctx.fillStyle = coneGrad;
+ctx.beginPath();
+ctx.moveTo(0, 0);
+ctx.arc(0, 0, 340, -0.45, 0.45);
+ctx.closePath();
+ctx.fill();
+ctx.restore();
+
+// 코어 젬
+ctx.fillStyle = '#38bdf8';
+for (var gi = 0; gi < gems.length; gi++) {
+ctx.beginPath();
+ctx.arc(gems[gi].x, gems[gi].y, 4.2, 0, Math.PI * 2);
+ctx.fill();
+}
+
+// 회전 칼날
+if (player.skills.blades > 0) {
+var blv = player.skills.blades;
+var bcnt = 1 + blv;
+var br = 78 + blv * 6;
+var rot = elapsed * (3.8 + blv * 0.4);
+for (var bi = 0; bi < bcnt; bi++) {
+var ba = rot + (bi * Math.PI * 2) / bcnt;
+var bx = player.x + Math.cos(ba) * br;
+var by = player.y + Math.sin(ba) * br;
+ctx.fillStyle = '#e2e8f0';
+ctx.beginPath();
+ctx.arc(bx, by, 10, 0, Math.PI * 2);
+ctx.fill();
+ctx.strokeStyle = '#f59e0b';
+ctx.lineWidth = 2;
+ctx.stroke();
+}
+}
+
+// 감염체
+for (var ei = 0; ei < enemies.length; ei++) {
+var e = enemies[ei];
+ctx.fillStyle = e.flash > 0 ? '#ffffff' : e.col;
+ctx.beginPath();
+ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
+ctx.fill();
+ctx.strokeStyle = '#06080b';
+ctx.lineWidth = 2;
+ctx.stroke();
+
+var ea = Math.atan2(player.y - e.y, player.x - e.x);
+ctx.fillStyle = '#ef4444';
+ctx.beginPath();
+ctx.arc(e.x + Math.cos(ea - 0.3) * (e.r * 0.55), e.y + Math.sin(ea - 0.3) * (e.r * 0.55), 2, 0, Math.PI * 2);
+ctx.arc(e.x + Math.cos(ea + 0.3) * (e.r * 0.55), e.y + Math.sin(ea + 0.3) * (e.r * 0.55), 2, 0, Math.PI * 2);
+ctx.fill();
+}
+
+// 요원 캐릭터
+ctx.save();
+ctx.translate(player.x, player.y);
+ctx.rotate(player.angle);
+ctx.strokeStyle = 'rgba(239, 68, 68, 0.38)';
+ctx.lineWidth = 1.2;
+ctx.beginPath();
+ctx.moveTo(14, 0); ctx.lineTo(250, 0);
+ctx.stroke();
+
+ctx.fillStyle = '#64748b';
+ctx.fillRect(8, -3, 16, 6);
+
+ctx.fillStyle = '#1e293b';
+ctx.beginPath();
+ctx.arc(0, 0, player.r, 0, Math.PI * 2);
+ctx.fill();
+ctx.strokeStyle = '#f59e0b';
+ctx.lineWidth = 2.5;
+ctx.stroke();
+
+ctx.fillStyle = '#10b981';
+ctx.fillRect(6, -5, 6, 10);
+ctx.restore();
+
+// 체력바
+ctx.fillStyle = 'rgba(0,0,0,0.8)';
+ctx.fillRect(player.x - 18, player.y + 22, 36, 5);
+ctx.fillStyle = player.hp > 35 ? '#10b981' : '#ef4444';
+ctx.fillRect(player.x - 18, player.y + 22, 36 * (player.hp / player.maxHp), 5);
+
+// 탄환 & 파티클
+for (var bi2 = 0; bi2 < bullets.length; bi2++) {
+var b = bullets[bi2];
+ctx.fillStyle = b.col;
+ctx.beginPath();
+ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+ctx.fill();
+}
+for (var pi = 0; pi < particles.length; pi++) {
+var p = particles[pi];
+ctx.save();
+ctx.globalAlpha = Math.max(0, p.life / p.max);
+if (p.ring) {
+ctx.strokeStyle = p.col;
+ctx.lineWidth = 3;
+ctx.beginPath();
+ctx.arc(p.x, p.y, p.r * (1 - p.life / p.max * 0.35), 0, Math.PI * 2);
+ctx.stroke();
+} else {
+ctx.fillStyle = p.col;
+ctx.beginPath();
+ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+ctx.fill();
+}
+ctx.restore();
+}
+
+ctx.restore();
+
+// 외곽 암흑 비네팅
+var vig = ctx.createRadialGradient(W / 2, H / 2, 120, W / 2, H / 2, Math.max(W, H) * 0.65);
+vig.addColorStop(0, 'rgba(0,0,0,0)');
+vig.addColorStop(1, 'rgba(3,4,7,0.85)');
+ctx.fillStyle = vig;
+ctx.fillRect(0, 0, W, H);
+}
+
+function gameOver() {
+state = 'OVER';
+var sec = Math.floor(elapsed);
+saveLb(agentName, sec, kills);
+document.getElementById('resTime').textContent = fmtTime(sec);
+document.getElementById('resKills').textContent = kills;
+document.getElementById('resLv').textContent = player.lv;
+document.getElementById('overModal').style.display = 'flex';
+}
+
+document.getElementById('shareBtn').onclick = function() {
+var sec = Math.floor(elapsed);
+var base = window.location.href.split('?')[0];
+var url = base + '?rival=' + encodeURIComponent(agentName) + '&time=' + sec + '&kills=' + kills;
+var msg = '[PROTOCOL ZERO : AAR]\n' +
+'- AGENT : ' + agentName + '\n' +
+'- SURVIVED : ' + fmtTime(sec) + ' (LV.' + player.lv + ')\n' +
+'- KILLS : ' + kills + '\n\n' +
+'Beat my survival record:\n' + url;
+if (navigator.clipboard && navigator.clipboard.writeText) {
+navigator.clipboard.writeText(msg).then(function() { toast(TXT.copied); });
+} else {
+var ta = document.createElement('textarea');
+ta.value = msg; document.body.appendChild(ta); ta.select();
+document.execCommand('copy'); document.body.removeChild(ta);
+toast(TXT.copied);
+}
+};
+
+document.getElementById('imgBtn').onclick = function() {
+var c = document.createElement('canvas');
+c.width = 800; c.height = 420;
+var x = c.getContext('2d');
+x.fillStyle = '#090c12'; x.fillRect(0, 0, 800, 420);
+x.strokeStyle = '#f59e0b'; x.lineWidth = 4; x.strokeRect(16, 16, 768, 388);
+x.fillStyle = '#f59e0b'; x.font = 'bold 14px monospace';
+x.fillText('CLASSIFIED // TACTICAL SURVIVAL RECORD', 44, 56);
+x.fillStyle = '#ffffff'; x.font = 'bold 32px sans-serif';
+x.fillText('ASHES OF OBLIVION : PROTOCOL ZERO', 44, 98);
+x.fillStyle = '#94a3b8'; x.font = 'bold 18px monospace';
+x.fillText('OPERATIVE : ' + agentName, 44, 138);
+
+var items = [
+{ l: 'SURVIVAL TIME', v: fmtTime(Math.floor(elapsed)) },
+{ l: 'HOSTILES PURGED', v: kills + ' KILLS' },
+{ l: 'FINAL LEVEL', v: 'LV. ' + player.lv }
+ ];
+for (var i = 0; i < 3; i++) {
+var bx = 44 + i * 245;
+x.fillStyle = '#111722'; x.fillRect(bx, 170, 225, 130);
+x.strokeStyle = '#263246'; x.lineWidth = 2; x.strokeRect(bx, 170, 225, 130);
+x.fillStyle = '#f59e0b'; x.font = 'bold 32px monospace';
+x.fillText(items[i].v, bx + 18, 236);
+x.fillStyle = '#94a3b8'; x.font = 'bold 13px sans-serif';
+x.fillText(items[i].l, bx + 18, 272);
+}
+var a = document.createElement('a');
+a.download = 'protocol_zero_' + agentName + '.png';
+a.href = c.toDataURL('image/png');
+a.click();
+};
+
+document.getElementById('startBtn').onclick = startGame;
+document.getElementById('retryBtn').onclick = startGame;
+
+var last = performance.now();
+function loop(now) {
+var dt = Math.min(0.05, (now - last) / 1000);
+last = now;
+update(dt);
+draw();
+requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
